@@ -1,0 +1,16 @@
+{
+  "name": "obike-analyse",
+  "description": "Scrape obikes",
+  "author": "Oliver Schnuck",
+  "version": "0.0.1",
+  "license": "properietary",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:digitalegarage/obike-analyse.git"
+  },
+  "dependencies": {
+    "mongodb": "^2.1.1",
+    "request": "^2.61.0"
+  }
+}
