@@ -8,6 +8,10 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
 
 (function init() {
 
+  var datetime = new Date();
+  var date = datetime.getFullYear() + '-' + datetime.getMonth() + '-' + datetime.getDate();
+  var hour = datetime.getHours();
+
   mongoClient.connect(mongoUrl, function(error, db) {
 
     if (!error) {
@@ -20,6 +24,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
         lon1 = 11.800645;
 
       var i = 1;
+      // var j = 0;
 
       for (var lat = lat0; lat <= lat1; lat = lat + (1 / 110.574)) {
 
@@ -29,14 +34,10 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
 
           console.log(i + ': ' + url);
           setTimeout(request, i * 100, url, {jar: true}, scrape);
-          // request(url, {jar: true}, scrape);
 
           i++;
         }
       }
-
-      // setTimeout(db.close, 1000);
-      // db.close();
     } else {
 
       console.log(error);
@@ -48,10 +49,10 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
       if (response.statusCode === 200) {
 
         var bikes = JSON.parse(body).data.list;
+        // j = j + bikes.length;
         save(bikes, db);
-      }
 
-      else {
+      } else {
 
         console.log('Request failed');
       }
@@ -61,19 +62,45 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
 
       var collection = db.collection(collectionName);
 
+      --i;
+
       data.forEach(function (element) {
+
+        element['date'] = date;
+        element['hour'] = hour;
 
         // console.log(element);
         collection.update(
-          { id: element.id },
+          {
+            id: element.id,
+            date: date,
+            hour: hour
+          },
           element,
-          { upsert: true, multi: false }
+          { upsert: true, multi: false },
+          function (error) {
+
+            if (error) {
+
+              console.log(error);
+            }
+
+            // --j;
+            // console.log(i + '-' + j);
+
+            // if (i === 1 && j === 0) {
+
+            //   console.log('Close database');
+            //   db.close();
+            // }
+          }
         );
       });
 
-      i = i - 1;
-      console.log(i);
+      // console.log(i);
+
       if (i === 1) {
+
         console.log('Close database');
         db.close();
       }
