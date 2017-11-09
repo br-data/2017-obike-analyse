@@ -12,5 +12,8 @@
   "dependencies": {
     "mongodb": "^2.1.1",
     "request": "^2.61.0"
+  },
+  "devDependencies": {
+    "eslint-config-esnext": "^1.6.0"
   }
 }
