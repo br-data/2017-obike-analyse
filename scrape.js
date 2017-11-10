@@ -11,8 +11,8 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
 
   var datetime = new Date(),
     date = datetime.getFullYear() + '-' + datetime.getMonth() + '-' + datetime.getDate(),
-    hour = datetime.getHours();
-    // city;
+    hour = datetime.getHours(),
+    city;
 
   mongoClient.connect(mongoUrl, function(error, db) {
 
@@ -30,7 +30,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
 
       for (var z = 0; z < cities.length; z++) {
 
-        var city = cities[z];
+        city = cities[z];
 
         if (city === 'frankfurt') {
 
@@ -55,7 +55,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
             var url = baseUrl + 'latitude=' + lat + '&longitude=' + lon;
             console.log(city + ': ' + i + ': ' + url);
 
-            setTimeout(request, i * 100, url, {jar: true}, scrape);
+            setTimeout(req, i * 100, url, city);
             i++;
           }
         }
@@ -66,21 +66,26 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
     }
 
 
-    function scrape(error, response, body) {
+    function req(url, city) {
 
-      if (response.statusCode === 200) {
+      request(url, {jar:true}, scrape);
 
-        var bikes = JSON.parse(body).data.list;
-        // j = j + bikes.length;
+      function scrape(error, response, body) {
 
-        save(bikes, db);
-      } else {
+        if (response.statusCode === 200) {
 
-        console.log('Request failed');
+          var bikes = JSON.parse(body).data.list;
+          // j = j + bikes.length;
+
+          save(bikes, db, city);
+        } else {
+
+          console.log('Request failed');
+        }
       }
     }
 
-    function save(data, db) {
+    function save(data, db, city) {
 
       var collection = db.collection(collectionName);
 
