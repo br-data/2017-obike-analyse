@@ -56,7 +56,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
             var url = baseUrl + 'latitude=' + lat + '&longitude=' + lon;
             console.log(city + ': ' + i + ': ' + url);
 
-            setTimeout(req, i * 150, url, city);
+            setTimeout(req, i * 120, url, city);
             i++;
           }
         }
