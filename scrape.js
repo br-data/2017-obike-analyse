@@ -14,6 +14,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
     hour = datetime.getHours(),
     city;
 
+  // TODO: divide maths and db-connect
   mongoClient.connect(mongoUrl, function(error, db) {
 
     if (!error) {
@@ -55,7 +56,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
             var url = baseUrl + 'latitude=' + lat + '&longitude=' + lon;
             console.log(city + ': ' + i + ': ' + url);
 
-            setTimeout(req, i * 100, url, city);
+            setTimeout(req, i * 150, url, city);
             i++;
           }
         }
@@ -72,6 +73,8 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
 
       function scrape(error, response, body) {
 
+        --i;
+
         if (response.statusCode === 200) {
 
           var bikes = JSON.parse(body).data.list;
@@ -80,7 +83,13 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
           save(bikes, db, city);
         } else {
 
-          console.log('Request failed');
+          console.log('Request ' + url + ' failed: Status ' + response.statusCode);
+
+          if (i === 1) {
+
+            console.log('Close database');
+            db.close();
+          }
         }
       }
     }
@@ -89,15 +98,13 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
 
       var collection = db.collection(collectionName);
 
-      --i;
-
       data.forEach(function (element) {
 
         element['date'] = date;
         element['hour'] = hour;
         element['city'] = city;
 
-        // console.log(element);
+        // TODO: bulkOperation und close database in callback
         collection.update(
           {
             id: element.id,
