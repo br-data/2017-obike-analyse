@@ -4,6 +4,7 @@ var request = require('request'),
 var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
   mongoUrl = 'mongodb://localhost:27017/obike',
   collectionName = 'bikes',
+  // Add city (e.g. 'berlin') here
   cities = ['muenchen', 'frankfurt'];
 
 
@@ -39,6 +40,12 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
           lon0 = 8.413478;
           lat1 = 50.239489;
           lon1 = 8.856560;
+        } else if (city === 'berlin') {
+
+          lat0 = 52.380591;
+          lon0 = 13.010205;
+          lat1 = 52.678389;
+          lon1 = 13.793848;
         } else
         // if (city === 'muenchen')
         {
