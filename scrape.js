@@ -83,6 +83,15 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
 
         --i;
 
+        db.collection('requests').insert({
+          url: url,
+          date: date,
+          hour: hour,
+          minute: minute,
+          city: city,
+          statusCode: response.statusCode
+        });
+
         if (response.statusCode === 200) {
 
           var bikes = JSON.parse(body).data.list;
@@ -92,7 +101,6 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
         } else {
 
           console.log('Request ' + url + ' failed: Status ' + response.statusCode);
-          save([ { id: url + '/' + 'minute=' + minute, error: 'http'} ], db, city);
 
           if (i === 1) {
 
@@ -106,6 +114,11 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
     function save(data, db, city) {
 
       var collection = db.collection(collectionName);
+
+      if (data === undefined) {
+
+        data === [];
+      }
 
       data.forEach(function (element) {
 

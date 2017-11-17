@@ -4,12 +4,12 @@ Obike ist Anbieter eines stationslosen Fahrradleihsystems. Mit dem Scraper läss
 ### Verwendung
 1. Repository klonen `git clone https://...`
 2. Erforderliche Module installieren `npm install`
-3. `node scape.js` oder `node analyse.js`  ausführen
+3. `node scape.js` ausführen
 
 ### Scraper
-Der Scraper `scrape.js` liegt unter `/var/www/app/obike-scraper` auf dem BR-Data-Server und wird von einem Jenkins Job ausgeführt. Aktuelle
+Der Scraper `scrape.js` liegt unter `/var/www/app/obike-scraper` auf dem BR-Data-Server und wird von einem Jenkins Job ausgeführt. Und zwar dreimal innerhalb einer Stunde da Fahrräder, die zum Zeitpunkt der Anfrage ausgeliehen sind, von der Schnittstelle nicht zurückgegeben werden. Ein Upsert führt dazu, dass Fahrräder mit der gleichen `id` innerhalb einer Stunde nicht mehrfach gespeichert werden.
 
-Für jedes Fahrrad wird ein Document in der Collection `bikes` gespeichert, die nach der Stadt benannt ist. Beispiel: 
+Für jedes Fahrrad wird ein Document in der Collection `bikes` gespeichert. Beispiel: 
 
 ```
 {
@@ -25,6 +25,21 @@ Für jedes Fahrrad wird ein Document in der Collection `bikes` gespeichert, die 
   "helmet" : 0,
   "date" : "2017-10-10",
   "hour" : 17,
+  "minute": 20, 
   "city" : "muenchen"
+}
+```
+
+Requests werden in eine Collection `requests` geschrieben. Beispiel: 
+
+```
+{
+  "_id" : ObjectId("5a0ef614b88a7729ae0fd687"),
+  "url" : "https://mobile.o.bike/api/v1/bike/list?latitude=50.147612911932214&longitude=8.817205865678945",
+  "date" : "2017-10-17",
+  "hour" : 16,
+  "minute" : 44,
+  "city" : "frankfurt",
+  "statusCode" : 503
 }
 ```
