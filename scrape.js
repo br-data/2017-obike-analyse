@@ -13,6 +13,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
   var datetime = new Date(),
     date = datetime.getFullYear() + '-' + datetime.getMonth() + '-' + datetime.getDate(),
     hour = datetime.getHours(),
+    minute = datetime.getMinutes(),
     city;
 
   // TODO: divide maths and db-connect
@@ -91,6 +92,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
         } else {
 
           console.log('Request ' + url + ' failed: Status ' + response.statusCode);
+          save([ { id: url + '/' + 'minute=' + minute, error: 'http'} ], db, city);
 
           if (i === 1) {
 
@@ -109,6 +111,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
 
         element['date'] = date;
         element['hour'] = hour;
+        element['minute'] = minute;
         element['city'] = city;
 
         // TODO: bulkOperation und close database in callback
