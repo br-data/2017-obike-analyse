@@ -92,7 +92,7 @@ var baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
           statusCode: response.statusCode
         });
 
-        if (response.statusCode === 200) {
+        if (response && response.statusCode === 200) {
 
           var bikes = JSON.parse(body).data.list;
           // j = j + bikes.length;
