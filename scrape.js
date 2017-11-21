@@ -1,7 +1,7 @@
 const request = require('request');
 const mongoClient = require('mongodb').MongoClient;
 
-const baseUrl = 'https://mobile.o.bike/api/v1/bike/list?',
+const baseUrl = 'https://mobile.o.bike/api/v1/bike/list?';
 const mongoUrl = 'mongodb://localhost:27017/obike';
 const collectionName = 'bikes';
 
@@ -27,144 +27,128 @@ const boundaries = {
     lat1: 48.256832,
     lon1: 11.800645
   }
-}
+};
+
+const locations = [];
+const date = new Date();
 
 (function init() {
-
-  const datetime = new Date();
-  const date = `${datetime.getFullYear()}-${datetime.getMonth()}-${datetime.getDate()}`;
-  const hour = datetime.getHours();
-  const minute = datetime.getMinutes();
 
   connect(prepare);
 })();
 
 function connect(callback) {
 
-  // TODO: divide maths and db-connect
   mongoClient.connect(mongoUrl, (error, db) => {
 
     if (!error) {
 
-      console.log('Connected to database');
-      callback();
+      console.log(`Connected to database: ${mongoUrl}`);
+      callback(db);
     } else {
 
       console.error(error);
+      db.close();
     }
-  })
+  });
 }
 
 function prepare(db) {
-  // count requests
-  let i = 1;
 
-  for (let city of cities) {
+  cities.forEach(city => {
 
-    let boundary = boundaries[city]
+    const boundary = boundaries[city];
 
-    // For transformation of 1km to degree see
-    // https://stackoverflow.com/a/1253545/2037629
+    // For transformation of 1km to degree see: https://stackoverflow.com/a/1253545/2037629
     for (let lat = boundary.lat0; lat <= boundary.lat1; lat = lat + (1 / 110.574) * 0.9) {
 
       for (let lon = boundary.lon0; lon <= boundary.lon1; lon = lon + (1 / (111.320 * Math.cos(lat * (Math.PI / 180)))) * 0.9) {
 
-        const url = `${baseUrl}latitude=${lat}&longitude=${lon}`;
-
-        console.log(`${city}: ${i}: ${url}`);
-
-        setTimeout(req, i * 120, url, city);
-        i++;
+        locations.push({
+          city,
+          url: `${baseUrl}latitude=${lat}&longitude=${lon}`
+        });
       }
     }
-  }
-}
-
-function req(url, city) {
-
-  request(url, {jar:true}, scrape);
-
-  function scrape(error, response, body) {
-
-    --i;
-
-    db.collection('requests').insert({
-      url,
-      date,
-      hour,
-      minute,
-      city,
-      statusCode: response.statusCode
-    });
-
-    if (response && response.statusCode === 200) {
-
-      const bikes = JSON.parse(body).data.list;
-      // j = j + bikes.length;
-
-      save(bikes, db, city);
-    } else {
-
-      console.log(`Request ${url} failed: Status ${response.statusCode}`);
-
-      if (i === 1) {
-
-        console.log('Close database');
-        db.close();
-      }
-    }
-  }
-}
-
-function save(data, db, city) {
-
-  const collection = db.collection(collectionName);
-
-  if (data === undefined) {
-
-    data === [];
-  }
-
-  data.forEach(element => {
-
-    element['date'] = date;
-    element['hour'] = hour;
-    element['minute'] = minute;
-    element['city'] = city;
-
-    // TODO: bulkOperation und close database in callback
-    collection.update(
-      {
-        id: element.id,
-        date,
-        hour,
-        city
-      },
-      element,
-      { upsert: true, multi: false },
-      error => {
-
-        if (error) {
-
-          console.log(error);
-        }
-
-        // --j;
-        // console.log(i + '-' + j);
-
-        // if (i === 1 && j === 0) {
-
-        //   console.log('Close database');
-        //   db.close();
-        // }
-      }
-    );
   });
 
-  // console.log(i);
-  if (i === 1) {
+  console.log(`Processing ${locations.length} locations`);
+  iterate(db, locations);
+}
 
-    console.log('Close database');
-    db.close();
+function iterate(db, locations) {
+
+  if (locations.length) {
+
+    if (locations.length % 100 === 0) {
+      console.log(locations.length);
+    }
+
+    setTimeout(() => {
+
+      const location = locations.pop();
+
+      scrape(db, location);
+      iterate(db, locations);
+    }, 10);
   }
+}
+
+function scrape(db, location) {
+
+  // request(location.url, {jar: true}, (error, response, body) => {
+
+  //   if (response && response.statusCode === 200) {
+
+  //     const bikes = JSON.parse(body).data.list;
+
+  //     save(db, bikes, location.city);
+  //   } else if (response) {
+
+  //     console.error(`Request ${location.url} failed: Status ${response.statusCode}`);
+  //   } else {
+
+  //     console.error(`Request ${location.url} failed: Error ${error}`);
+  //   }
+  // });
+
+  save(db, undefined, location.city);
+}
+
+function save(db, bikes, city) {
+
+  const collection = db.collection(collectionName);
+  const bulk = collection.initializeOrderedBulkOp();
+
+  bikes = bikes || [];
+
+  bikes.forEach(bike => {
+
+    bike.date = date;
+    bike.city = city;
+
+    bulk.find({
+      id: bike.id,
+      date: bike.date
+    })
+    .upsert()
+    .updateOne(bike);
+
+    bulk.execute(error => {
+
+      console.log('Executing bulk operation');
+
+      console.log(!error && !locations.length);
+
+      if (!error && !locations.length) {
+
+        console.log(`Connected to database: ${mongoUrl}`);
+        db.close();
+      } else {
+
+        console.error(error);
+        db.close();
+      }
+    });
+  });
 }
