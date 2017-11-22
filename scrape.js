@@ -6,7 +6,7 @@ const mongoUrl = 'mongodb://localhost:27017/obike';
 const collectionName = 'bikes';
 
 // Add city (e.g. 'berlin') here
-const cities = ['muenchen', 'frankfurt'];
+const cities = ['muenchen', 'frankfurt', 'berlin'];
 
 const boundaries = {
   frankfurt: {
@@ -26,10 +26,15 @@ const boundaries = {
     lon0: 11.312153,
     lat1: 48.256832,
     lon1: 11.800645
+  },
+  hannover: {
+    lat0: 52.262484,
+    lon0: 9.542656,
+    lat1: 52.467514,
+    lon1: 9.926491
   }
 };
 
-const locations = [];
 const date = new Date();
 
 (function init() {
@@ -47,13 +52,15 @@ function connect(callback) {
       callback(db);
     } else {
 
-      console.error(error);
+      console.error(`${error.name}: ${error.message}`);
+
       db.close();
+      console.log('Disconnected from database');
     }
   });
 }
 
-function prepare(db) {
+function prepare(db, locations = []) {
 
   cities.forEach(city => {
 
@@ -80,75 +87,74 @@ function iterate(db, locations) {
 
   if (locations.length) {
 
-    if (locations.length % 100 === 0) {
-      console.log(locations.length);
-    }
-
     setTimeout(() => {
 
       const location = locations.pop();
 
-      scrape(db, location);
+      scrape(db, location, locations.length);
       iterate(db, locations);
-    }, 10);
+    }, 200);
   }
 }
 
-function scrape(db, location) {
+function scrape(db, location, index) {
 
-  // request(location.url, {jar: true}, (error, response, body) => {
+  request(location.url, {jar: true}, (error, response, body) => {
 
-  //   if (response && response.statusCode === 200) {
+    if (response && response.statusCode === 200) {
 
-  //     const bikes = JSON.parse(body).data.list;
+      console.log(`Request ${index} (${location.city}): ${location.url}`);
+      body = JSON.parse(body).data.list;
 
-  //     save(db, bikes, location.city);
-  //   } else if (response) {
+    } else if (response) {
 
-  //     console.error(`Request ${location.url} failed: Status ${response.statusCode}`);
-  //   } else {
+      console.error(`Request ${location.url} failed: Status ${response.statusCode}`);
+    } else {
 
-  //     console.error(`Request ${location.url} failed: Error ${error}`);
-  //   }
-  // });
+      console.error(`Request ${location.url} failed: Error ${error}`);
+    }
 
-  save(db, undefined, location.city);
+    save(db, body, location.city, index);
+  });
 }
 
-function save(db, bikes, city) {
+function save(db, bikes, city, index) {
 
   const collection = db.collection(collectionName);
-  const bulk = collection.initializeOrderedBulkOp();
+  const bulk = collection.initializeUnorderedBulkOp();
 
-  bikes = bikes || [];
+  if (bikes && bikes.length > 0) {
 
-  bikes.forEach(bike => {
+    bikes.forEach(bike => {
 
-    bike.date = date;
-    bike.city = city;
+      bike.date = date;
+      bike.city = city;
 
-    bulk.find({
-      id: bike.id,
-      date: bike.date
-    })
-    .upsert()
-    .updateOne(bike);
+      bulk
+        .find({
+          id: bike.id,
+          date: bike.date
+        })
+        .upsert()
+        .updateOne(bike);
+    });
 
     bulk.execute(error => {
 
-      console.log('Executing bulk operation');
+      if (index === 0) {
 
-      console.log(!error && !locations.length);
-
-      if (!error && !locations.length) {
-
-        console.log(`Connected to database: ${mongoUrl}`);
         db.close();
-      } else {
+        console.log('Disconnected from database');
+      }
 
-        console.error(error);
-        db.close();
+      if (error) {
+
+        console.error(`${error.name}: ${error.message}`);
       }
     });
-  });
+  } else if (index === 0) {
+
+    db.close();
+    console.log('Disconnected from database');
+  }
 }
