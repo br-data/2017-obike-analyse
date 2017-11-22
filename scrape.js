@@ -1,13 +1,17 @@
 const request = require('request');
 const mongoClient = require('mongodb').MongoClient;
 
-const baseUrl = 'https://mobile.o.bike/api/v1/bike/list?';
 const mongoUrl = 'mongodb://localhost:27017/obike';
 const collectionName = 'bikes';
 
-// Add city (e.g. 'berlin') here
-const cities = ['muenchen', 'frankfurt', 'berlin'];
+// O-Bike location API endpoint
+const baseUrl = 'https://mobile.o.bike/api/v1/bike/list?';
 
+// Cities that should be scraped
+const cities = ['muenchen', 'frankfurt', 'berlin', 'hannover'];
+
+// Bounding boxes for the cities. Convenient helper for
+// creating bounding boxes: http://boundingbox.klokantech.com/
 const boundaries = {
   frankfurt: {
     lat0: 49.984826,
@@ -35,13 +39,15 @@ const boundaries = {
   }
 };
 
-const date = new Date();
+// Timestamp for each scraping run
+const timestamp = new Date();
 
 (function init() {
 
   connect(prepare);
 })();
 
+// Establish database connection
 function connect(callback) {
 
   mongoClient.connect(mongoUrl, (error, db) => {
@@ -60,13 +66,16 @@ function connect(callback) {
   });
 }
 
+// Create URLs from bounding boxes
 function prepare(db, locations = []) {
 
   cities.forEach(city => {
 
+    // Get bounding box
     const boundary = boundaries[city];
 
-    // For transformation of 1km to degree see: https://stackoverflow.com/a/1253545/2037629
+    // Build a 1 by 1 km grid for scraping the location API
+    // km to degree conversion details here: https://stackoverflow.com/a/1253545/2037629
     for (let lat = boundary.lat0; lat <= boundary.lat1; lat = lat + (1 / 110.574) * 0.9) {
 
       for (let lon = boundary.lon0; lon <= boundary.lon1; lon = lon + (1 / (111.320 * Math.cos(lat * (Math.PI / 180)))) * 0.9) {
@@ -83,20 +92,23 @@ function prepare(db, locations = []) {
   iterate(db, locations);
 }
 
+// Iterate recursively to allow for timeouts
 function iterate(db, locations) {
 
   if (locations.length) {
 
+    // 150ms timeout
     setTimeout(() => {
 
       const location = locations.pop();
 
       scrape(db, location, locations.length);
       iterate(db, locations);
-    }, 200);
+    }, 150);
   }
 }
 
+// Request and handle data from API endpoint
 function scrape(db, location, index) {
 
   request(location.url, {jar: true}, (error, response, body) => {
@@ -114,22 +126,32 @@ function scrape(db, location, index) {
       console.error(`Request ${location.url} failed: Error ${error}`);
     }
 
+    // Try to save data, no matter if data was collected or not
     save(db, body, location.city, index);
   });
 }
 
+// Save results to MongoDB
 function save(db, bikes, city, index) {
 
+  // Create bulk operation
   const collection = db.collection(collectionName);
   const bulk = collection.initializeUnorderedBulkOp();
 
+  // Handle empty responses
   if (bikes && bikes.length > 0) {
 
     bikes.forEach(bike => {
 
-      bike.date = date;
       bike.city = city;
+      bike.timestamp = timestamp;
 
+      // @todo Remove (wrong) legacy date timestamp
+      bike.date = timestamp.getFullYear() + '-' + timestamp.getMonth() + '-' + timestamp.getDate();
+      bike.hour = timestamp.getHours();
+      bike.minute = timestamp.getMinutes();
+
+      // Upsert data in bulk
       bulk
         .find({
           id: bike.id,
@@ -141,6 +163,7 @@ function save(db, bikes, city, index) {
 
     bulk.execute(error => {
 
+      // Close database connection when done
       if (index === 0) {
 
         db.close();
@@ -152,6 +175,7 @@ function save(db, bikes, city, index) {
         console.error(`${error.name}: ${error.message}`);
       }
     });
+  // Close database connection when done
   } else if (index === 0) {
 
     db.close();
