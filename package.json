@@ -10,10 +10,12 @@
     "url": "git@github.com:digitalegarage/obike-analyse.git"
   },
   "dependencies": {
-    "mongodb": "^2.1.1",
-    "request": "^2.61.0"
+    "mongodb": "^2.2.33",
+    "request": "^2.83.0"
   },
   "devDependencies": {
+    "babel-eslint": "^8.0.2",
+    "eslint": "^4.11.0",
     "eslint-config-esnext": "^1.6.0"
   }
 }
