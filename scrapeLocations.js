@@ -40,7 +40,7 @@ const boundaries = {
 };
 
 // Timestamp for each scraping run
-const timestamp = new Date();
+const date = new Date();
 
 (function init() {
 
@@ -144,12 +144,7 @@ function save(db, bikes, city, index) {
     bikes.forEach(bike => {
 
       bike.city = city;
-      bike.timestamp = timestamp;
-
-      // @todo Remove (wrong) legacy date timestamp
-      bike.date = timestamp.getFullYear() + '-' + timestamp.getMonth() + '-' + timestamp.getDate();
-      bike.hour = timestamp.getHours();
-      bike.minute = timestamp.getMinutes();
+      bike.date = date;
 
       // Upsert data in bulk
       bulk

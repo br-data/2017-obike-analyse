@@ -4,7 +4,7 @@ import time
 import json
 import unicodecsv
 
-outfile = open("single_bike_data_2.csv", "wb")
+outfile = open("./output/bike-data.csv", "wb")
 
 final_file = unicodecsv.writer(outfile, encoding='utf-8')
 final_file.writerow([
