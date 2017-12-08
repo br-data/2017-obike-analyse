@@ -1,5 +1,5 @@
-# oBike
-oBike ist Anbieter eines stationslosen Fahrradleihsystems. Der Firma wurde öfters vorgeworfen die Städte mit zahlreichen billigen Fahrrädern zu überfluten. Der Scraper erfasst, wie viele Fahrräder in einer von oBike bedienten Stadt vorhanden sind und wo diese stehen.
+# oBike-Scraper
+oBike ist Anbieter eines stationslosen Fahrradleihsystems. Der Firma wurde öfters vorgeworfen die Städte mit zahlreichen Billig-Leihrädern zu überfluten. Der Scraper erfasst, wie viele Fahrräder in einer von oBike bedienten Stadt vorhanden sind und wo diese stehen.
 
 - [Billig-Fahrräder aus Asien fluten München](https://www.br.de/nachrichten/oberbayern/inhalt/billig-fahrraeder-aus-china-fluten-muenchen-100.html)
 - [BR deckt Datenleck beim Fahrradverleiher Obike auf](https://www.br.de/nachrichten/datenleck-obike-100.html)
@@ -15,17 +15,17 @@ Um die Anzahl und Standorte der Fahrräder zu erfassen, gibt es zwei öffentlich
 Location-API, welche alle Fahrräder in einem Umkreis von einem Kilometer zu einem bestimmt Standort zurückliefert. Die Schnittstelle erwartet Längen- und Breitengrad des Standorts als Parameter:
 
 ```
-https://mobile.o.bike/api/v1/bike/list?latitude=48.143077&longitude=11.553544.
+https://mobile.o.bike/api/v1/bike/list?latitude=48.143077&longitude=11.553544
 ```
 
 Bike-API, welche Informationen und Standort für ein Fahrrad zurückliefert. Die Bike-ID setzt sich aus einem Länderprefix (049) und einer fünfstelligen Zahl (000000 bis circa 23000) zusammen:
 
 ```
-https://mobile.o.bike/api/v1/bike/049000002
+https://mobile.o.bike/api/v1/bike/049008159
 ```
 
 ### Location Scraper
-Node.js-basiertes Skript, welches für verschiedene Städte alle Standorte von oBikes sammelt. Dafür wird für jede Stadt ein Georaster mit ein Quadratkilometer großen Zellen aufgebaut. Für jede dieser Zellen wir eine Anfrage an die API gestellt und die zurückgelieferten Standorte und Daten der oBikes in einer MongoDB-Datenbank gespeichert. Ein [Upsert](https://docs.mongodb.com/manual/reference/method/Bulk.find.upsert/) stellt sicher, dass Fahrräder mit der gleichen `id` innerhalb eines Scraping-Durchlaufs nicht mehrfach gespeichert werden.
+Node.js-basiertes Skript, welches für verschiedene Städte alle Standorte von oBikes sammelt. Dafür wird für jede Stadt ein Georaster mit ein Quadratkilometer großen Zellen aufgebaut. Für jede dieser Zellen wird eine Anfrage an die API gestellt und die zurückgelieferten Standorte und Daten der oBikes in einer MongoDB-Datenbank gespeichert. Ein [Upsert](https://docs.mongodb.com/manual/reference/method/Bulk.find.upsert/) stellt sicher, dass Fahrräder mit der gleichen `id` innerhalb eines Scraping-Durchlaufs nicht mehrfach gespeichert werden.
 
 Ausführen: 
 
@@ -52,6 +52,19 @@ Für jedes Fahrrad wird ein Dokument in der Kollektion `bikes` gespeichert. Beis
 }
 ```
 
+Neue Städte können im Konfigurationobjekt `boundaries` hinzugefügt werden. Dabei hilft das webbasierte [Bounding-Box-Tool von Klokan](http://boundingbox.klokantech.com/). Beispiel Frankfurt:  
+
+```javascript
+const boundaries = {
+  frankfurt: {
+    lat0: 49.984826,
+    lon0: 8.4134782,
+    lat1: 50.239489,
+    lon1: 8.8565601
+  }
+}
+```
+
 Um den Scraper regelmäßig, zum Beispiel stündlich, laufen zu lassen, empfiehlt sich der Einsatz eines Task Scheduler wie [cron](https://www.npmjs.com/package/node-cron) oder [Jenkins](https://jenkins-ci.org/).
 
 ### Bike Scraper
@@ -74,10 +87,36 @@ country = "de"
 country_id = countries[country]
 ```
 
-Außerdem kann festgelegt werden für welche ID-Bereich nach Fahrrädern gesucht werden soll. Hier ein Beispiel für den maximalen ID-Bereich.
+Außerdem kann festgelegt werden für welche ID-Bereich nach Fahrrädern gesucht werden soll. Für Deutschland ist eine maximale ID von **23000** sinnvoll. Hier ein Beispiel für den maximalen ID-Bereich.
 
 ```python
 for n in range(0, 99999):
 ```
 
-Für Deutschland ist der maximale ID-Bereich **23000**.
+Die API wird mit der Länderkennung `049` und der fortlaufenden Nummer `008159` angefragt:
+
+```
+$ curl https://mobile.o.bike/api/v1/bike/049008159
+
+```
+
+Die API liefert für das Fahrrad mit der ID `049008159` folgende Daten zurück: 
+
+``` 
+{
+  "data": {
+    "unitMinutes": 30,
+    "hasStation": true,
+    "price": 0.50,
+    "latitude": 48.118604,
+    "freeMinutes": 0,
+    "overTime": 15,
+    "currency": "€",
+    "iconUrl": null,
+    "rideMinutes": null,
+    "promotionActivityType": null,
+    "longitude": 11.609734
+  },
+  "success": true
+}
+```
