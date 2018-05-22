@@ -9,14 +9,17 @@
     "type": "git",
     "url": "git@github.com:br-data/2017-obike-analyse.git"
   },
+  "scripts": {
+    "start": "node node_modules/http-server/bin/http-server ./src -s -o --cors",
+    "watch": "grunt watch",
+    "dist": "grunt dist"
+  },
   "dependencies": {
     "mongodb": "^2.2.33",
     "request": "^2.83.0"
   },
   "devDependencies": {
     "d3": "^3.5.17",
-    "babel-eslint": "^8.0.2",
-    "eslint": "^4.11.0",
     "eslint-config-esnext": "^1.6.0",
     "http-server": "^0.9.0"
   }

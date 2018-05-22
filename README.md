@@ -149,4 +149,3 @@ var isAnimated = true;
 - Mike Bostock: [Zoomable Map Tiles](http://bl.ocks.org/mbostock/4132797)
 - Lars Verspohl: [D3 and Canvas in 3 steps](https://medium.freecodecamp.org/d3-and-canvas-in-3-steps-8505c8b27444)
 - Irene Ros: [Working with D3 and Canvas](https://bocoup.com/blog/d3js-and-canvas)
-
