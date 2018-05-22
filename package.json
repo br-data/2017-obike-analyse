@@ -1,21 +1,23 @@
 {
-  "name": "obike-analyse",
-  "description": "Scrape obikes",
+  "name": "2017-obike-analyse",
+  "description": "Gather, analyze and visualize oBike location",
   "author": "Oliver Schnuck",
   "version": "0.0.1",
   "license": "properietary",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git@github.com:digitalegarage/obike-analyse.git"
+    "url": "git@github.com:br-data/2017-obike-analyse.git"
   },
   "dependencies": {
     "mongodb": "^2.2.33",
     "request": "^2.83.0"
   },
   "devDependencies": {
+    "d3": "^3.5.17",
     "babel-eslint": "^8.0.2",
     "eslint": "^4.11.0",
-    "eslint-config-esnext": "^1.6.0"
+    "eslint-config-esnext": "^1.6.0",
+    "http-server": "^0.9.0"
   }
 }
