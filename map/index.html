@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="initial-scale=1, user-scalable=no">
+
+  <title>Obikes in München</title>
+
+  <!-- build:css styles/main.min.css -->
+  <link rel="stylesheet" type="text/css" href="styles/map.css">
+  <!-- endbuild -->
+
+</head>
+
+<body>
+
+  <div id="map">
+    <div class="streetmap"></div>
+    <canvas class="points"></canvas>
+    <div class="attribution">
+      &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="http://cartodb.com/attributions">CartoDB</a>
+    </div>
+  </div>
+
+  <!-- build:js scripts/main.min.js -->
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://d3js.org/d3.geo.tile.v0.min.js"></script>
+
+  <script src="scripts/map.js"></script>
+  <!-- build:js scripts/main.min.js -->
+
+</body>
+</html>
