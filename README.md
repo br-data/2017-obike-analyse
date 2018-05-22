@@ -1,10 +1,14 @@
-# oBike-Scraper
-oBike ist Anbieter eines stationslosen Fahrradleihsystems. Der Firma wurde öfters vorgeworfen die Städte mit zahlreichen Billig-Leihrädern zu überfluten. Der Scraper erfasst, wie viele Fahrräder in einer von oBike bedienten Stadt vorhanden sind und wo diese stehen.
+# oBike Analyse
+oBike ist Anbieter eines stationslosen Fahrradleihsystems. Der Firma wurde öfters vorgeworfen die Städte mit zahlreichen Billig-Leihrädern zu überfluten. BR Data und BR Recherche haben nun ein Datenleck bei
+oBike entdeckt. Persönliche Daten und Bewegungsdaten von Nutzern auf der ganzen Welt waren eine Zeit lang für jeden frei zugänglich.
 
 - [Billig-Fahrräder aus Asien fluten München](https://www.br.de/nachrichten/oberbayern/inhalt/billig-fahrraeder-aus-china-fluten-muenchen-100.html)
 - [BR deckt Datenleck beim Fahrradverleiher Obike auf](https://www.br.de/nachrichten/datenleck-obike-100.html)
 
-### Verwendung
+## Scraper
+Der Scraper erfasst, wie viele Fahrräder in einer von oBike bedienten Stadt vorhanden sind und wo diese stehen.
+
+### Verwendung 
 1. Repository klonen `git clone https://...`
 2. Erforderliche Module installieren `npm install`
 3. `node scapeLocations.js` oder `python scrapeBikes.py` ausführen
@@ -120,3 +124,29 @@ Die API liefert für das Fahrrad mit der ID `049008159` folgende Daten zurück:
   "success": true
 }
 ```
+
+## oBike-Karte
+Wo stehen die meisten oBikes in München? Die Anwendung ermöglicht es mithilfe von [D3](https://d3js.org/) und [Canvas](https://developer.mozilla.org/de/docs/Web/HTML/Canvas) tausende Punkte performant auf eine Kartenebene (z.B. Open Street Map) zu zeichnen.
+
+### Verwendung
+1. Erforderliche Module installieren `npm install`
+2. Website über Apache oder einen ähnlichen HTTP-Server ausliefern
+
+Zum lokalen Entwicklen und Testen ist ein kleiner [HTTP-Server](https://github.com/indexzero/http-server) integriert. Diesen kann man mit dem Befehl `npm start` starten. Der Server läuft unter http://localhost:8080. Beim Starten des Entwicklungsservers sollte automatisch ein neues Browserfenster aufgehen.
+
+### Animation
+Das Zeichnen der einzelnen Punkte kann auch animiert werden:
+
+```
+var isAnimated = true;
+```
+
+### Verbesserungen
+- mobiles Pinch-to-Zoom verbessern
+- interaktiver Layer hinzufügen (z.b. Popups)
+
+### Referenzen
+- Mike Bostock: [Zoomable Map Tiles](http://bl.ocks.org/mbostock/4132797)
+- Lars Verspohl: [D3 and Canvas in 3 steps](https://medium.freecodecamp.org/d3-and-canvas-in-3-steps-8505c8b27444)
+- Irene Ros: [Working with D3 and Canvas](https://bocoup.com/blog/d3js-and-canvas)
+
