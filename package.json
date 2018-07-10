@@ -21,6 +21,6 @@
   "devDependencies": {
     "d3": "^3.5.17",
     "eslint-config-esnext": "^1.6.0",
-    "http-server": "^0.9.0"
+    "http-server": "^0.11.1"
   }
 }
